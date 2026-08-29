@@ -1,0 +1,11 @@
+{
+  "days": [
+    {
+      "date": "2026-12-31",
+      "name": "公司周年纪念日",
+      "isOffDay": true,
+      "isWeekend": false,
+      "wage": 1
+    }
+  ]
+}
