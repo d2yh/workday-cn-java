@@ -1,7 +1,7 @@
 package com.github.d2yh.workday.exception;
 
 /**
- * Base exception for holiday-cn-java
+ * Base exception for workday-cn-java
  */
 public class HolidayException extends RuntimeException {
     

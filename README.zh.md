@@ -1,14 +1,14 @@
 # workday-cn-java
 
-用于获取和缓存中国节假日数据的 Java 库。本库从配置的远程源拉取节假日配置，提供本地缓存、策略计算和工作日推算能力。
+中国工作日计算的 Java 库：基于节假日数据（兼容 [holiday-cn](https://github.com/NateScarlet/holiday-cn) 格式）提供工作日判断与工作日推算，支持多级数据加载、本地缓存，以及无数据年份的策略化回退计算。
 
 ## 功能特性
 
 - 📅 **多源数据拉取** — 从配置的远程源获取节假日数据，兼容 [holiday-cn](https://github.com/NateScarlet/holiday-cn) JSON 格式
 - 💾 **多级加载** — 数据目录 → classpath 内置资源 → 远程 URL，逐级回退
 - 🩹 **扩展补丁（ext.json）** — 可选的 `{year}-ext.json` 文件，覆盖或新增日期条目，支持公司级定制
-- 🔄 **定期自动更新** — 默认每 10 天检测并刷新数据
-- 🌏 **多区域隔离** — 通过 `calendar.region` 配置支持不同国家/地区（CN、TW、HK、SG 等）
+- 🔄 **定期自动更新** — 基于 cron 表达式调度（Quartz 格式；默认每年 11/12 月 1、11、21 日 02:00）
+- 🌏 **多区域隔离** — 通过 `data-store.region` 配置支持不同国家/地区（CN、TW、HK、SG 等）
 - 🧮 **策略化假日计算** — 无数据年份自动计算：仅周末（WEEKEND_ONLY）或 周末+春节+国庆（FESTIVAL）
 - 📆 **工作日推算** — `isWorkDay`、`addWorkDays` 等实例方法 + `WorkdayUtils` 静态工具类
 - 📦 **配置驱动** — `.properties` 配置体系，支持默认配置、classpath 覆盖和外部文件覆盖
@@ -46,7 +46,7 @@
 <dependency>
     <groupId>com.github.d2yh</groupId>
     <artifactId>workday-cn-java</artifactId>
-    <version>1.0.0</version>
+    <version>0.1.0</version>
 </dependency>
 ```
 

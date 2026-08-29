@@ -1,14 +1,14 @@
 # workday-cn-java
 
-A Java library for fetching and caching Chinese holiday data. Pulls holiday configurations from remote sources with local caching, strategy-based calculation, and working-day arithmetic.
+A Java library for Chinese workday calculation: workday checks and working-day arithmetic backed by holiday data (compatible with the holiday-cn format), with multi-level loading, local caching, and strategy-based fallback for years without data.
 
 ## Features
 
 - 📅 **Multi-source data fetching** — Remote holiday data compatible with [holiday-cn](https://github.com/NateScarlet/holiday-cn) JSON format
 - 💾 **Multi-level loading** — Data directory → classpath resources → remote URLs with cascading fallback
 - 🩹 **Extension patches (ext.json)** — Optional `{year}-ext.json` files to override or add date entries for company-level customization
-- 🔄 **Periodic auto-refresh** — Configurable interval (default: every 10 days)
-- 🌏 **Multi-region isolation** — `calendar.region` config for different countries/regions (CN, TW, HK, SG, etc.)
+- 🔄 **Periodic auto-refresh** — Cron-based scheduling (Quartz expression; default: 1st, 11th, 21st of Nov/Dec at 02:00)
+- 🌏 **Multi-region isolation** — `data-store.region` config for different countries/regions (CN, TW, HK, SG, etc.)
 - 🧮 **Strategy-based calculation** — Auto-compute off-days for years without data: weekends only (WEEKEND_ONLY) or weekends + Spring Festival + National Day (FESTIVAL)
 - 📆 **Working-day arithmetic** — Instance methods (`isWorkDay`, `addWorkDays`) + standalone `WorkdayUtils` utility class
 - 📦 **Configuration-driven** — `.properties` config with built-in defaults, classpath override, and external file override
@@ -46,7 +46,7 @@ Compatible with [holiday-cn](https://github.com/NateScarlet/holiday-cn) JSON for
 <dependency>
     <groupId>com.github.d2yh</groupId>
     <artifactId>workday-cn-java</artifactId>
-    <version>1.0.0</version>
+    <version>0.1.0</version>
 </dependency>
 ```
 
