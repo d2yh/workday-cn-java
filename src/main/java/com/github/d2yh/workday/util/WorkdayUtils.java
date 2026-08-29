@@ -1,8 +1,8 @@
-package com.github.d2yh.holiday.util;
+package com.github.d2yh.workday.util;
 
-import com.github.d2yh.holiday.model.HolidayInfo;
-import com.github.d2yh.holiday.strategy.OffDayStrategy;
-import com.github.d2yh.holiday.strategy.WeekendOnlyStrategy;
+import com.github.d2yh.workday.model.HolidayInfo;
+import com.github.d2yh.workday.strategy.OffDayStrategy;
+import com.github.d2yh.workday.strategy.WeekendOnlyStrategy;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;

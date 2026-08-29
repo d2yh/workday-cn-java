@@ -1,4 +1,4 @@
-package com.github.d2yh.holiday.exception;
+package com.github.d2yh.workday.exception;
 
 /**
  * Exception thrown when parsing holiday data fails

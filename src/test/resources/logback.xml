@@ -7,12 +7,12 @@
     </appender>
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/holiday-cn-java.log</file>
+        <file>logs/workday-cn-java.log</file>
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>logs/holiday-cn-java.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <fileNamePattern>logs/workday-cn-java.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <maxFileSize>10MB</maxFileSize>
             <maxHistory>7</maxHistory>
             <totalSizeCap>100MB</totalSizeCap>
@@ -24,5 +24,5 @@
         <appender-ref ref="FILE"/>
     </root>
 
-    <logger name="com.github.d2yh.holiday" level="DEBUG"/>
+    <logger name="com.github.d2yh.workday" level="DEBUG"/>
 </configuration>

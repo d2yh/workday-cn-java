@@ -1,9 +1,9 @@
-package com.github.d2yh.holiday;
+package com.github.d2yh.workday;
 
-import com.github.d2yh.holiday.strategy.FestivalStrategy;
-import com.github.d2yh.holiday.strategy.OffDayStrategy;
-import com.github.d2yh.holiday.strategy.WeekendOnlyStrategy;
-import com.github.d2yh.holiday.util.WorkdayUtils;
+import com.github.d2yh.workday.strategy.FestivalStrategy;
+import com.github.d2yh.workday.strategy.OffDayStrategy;
+import com.github.d2yh.workday.strategy.WeekendOnlyStrategy;
+import com.github.d2yh.workday.util.WorkdayUtils;
 import org.junit.Test;
 
 import java.time.LocalDate;

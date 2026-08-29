@@ -1,6 +1,6 @@
 # 开发指南
 
-本文档为 `holiday-cn-java` 的开发与配置参考。
+本文档为 `workday-cn-java` 的开发与配置参考。
 
 ---
 
@@ -13,7 +13,7 @@ Maven：
 ```xml
 <dependency>
     <groupId>com.github.d2yh</groupId>
-    <artifactId>holiday-cn-java</artifactId>
+    <artifactId>workday-cn-java</artifactId>
     <version>1.0.0</version>
 </dependency>
 ```
@@ -55,8 +55,8 @@ LocalDate deadline = fetcher.addWorkDays(LocalDate.of(2025, 10, 15), 10);
 无需 HolidayFetcher 实例时，使用静态工具类 `WorkdayUtils`：
 
 ```java
-import com.github.d2yh.holiday.util.WorkdayUtils;
-import com.github.d2yh.holiday.strategy.WeekendOnlyStrategy;
+import com.github.d2yh.workday.util.WorkdayUtils;
+import com.github.d2yh.workday.strategy.WeekendOnlyStrategy;
 
 // 简单判断周末 / 工作日
 boolean weekend = WorkdayUtils.isWeekend(LocalDate.of(2025, 10, 4)); // true
@@ -240,7 +240,7 @@ private static final HolidayFetcher fetcher = new HolidayFetcher();
 | 时机 | 线程 | 说明 |
 |------|------|------|
 | 构造 HolidayFetcher 时 | 无后台线程 | 构造器同步加载磁盘数据到内存，在调用线程中执行 |
-| 调用 `startPeriodicUpdate()` | `holiday-cn-java-updater` | 单线程 `ScheduledExecutorService`，daemon 线程，基于 Quartz cron 表达式计算下次执行时间并调度 |
+| 调用 `startPeriodicUpdate()` | `workday-cn-java-updater` | 单线程 `ScheduledExecutorService`，daemon 线程，基于 Quartz cron 表达式计算下次执行时间并调度 |
 | 调用 `stopPeriodicUpdate()` | — | 取消调度任务并关闭线程池 |
 
 调度线程为 **daemon 线程**，不会阻止 JVM 退出。

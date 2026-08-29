@@ -1,4 +1,4 @@
-# holiday-cn-java
+# workday-cn-java
 
 用于获取和缓存中国节假日数据的 Java 库。本库从配置的远程源拉取节假日配置，提供本地缓存、策略计算和工作日推算能力。
 
@@ -45,7 +45,7 @@
 ```xml
 <dependency>
     <groupId>com.github.d2yh</groupId>
-    <artifactId>holiday-cn-java</artifactId>
+    <artifactId>workday-cn-java</artifactId>
     <version>1.0.0</version>
 </dependency>
 ```
@@ -53,8 +53,8 @@
 ## 快速开始
 
 ```java
-import com.github.d2yh.holiday.HolidayFetcher;
-import com.github.d2yh.holiday.model.HolidayInfo;
+import com.github.d2yh.workday.HolidayFetcher;
+import com.github.d2yh.workday.model.HolidayInfo;
 import java.time.LocalDate;
 
 // 使用默认配置初始化

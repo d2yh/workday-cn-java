@@ -1,12 +1,12 @@
-package com.github.d2yh.holiday;
+package com.github.d2yh.workday;
 
-import com.github.d2yh.holiday.config.HolidayConfig;
-import com.github.d2yh.holiday.exception.HolidayFetchException;
-import com.github.d2yh.holiday.model.HolidayInfo;
-import com.github.d2yh.holiday.strategy.FestivalStrategy;
-import com.github.d2yh.holiday.strategy.OffDayStrategy;
-import com.github.d2yh.holiday.strategy.WeekendOnlyStrategy;
-import com.github.d2yh.holiday.util.LunarCalendar;
+import com.github.d2yh.workday.config.HolidayConfig;
+import com.github.d2yh.workday.exception.HolidayFetchException;
+import com.github.d2yh.workday.model.HolidayInfo;
+import com.github.d2yh.workday.strategy.FestivalStrategy;
+import com.github.d2yh.workday.strategy.OffDayStrategy;
+import com.github.d2yh.workday.strategy.WeekendOnlyStrategy;
+import com.github.d2yh.workday.util.LunarCalendar;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

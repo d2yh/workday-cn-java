@@ -1,4 +1,4 @@
-package com.github.d2yh.holiday.config;
+package com.github.d2yh.workday.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

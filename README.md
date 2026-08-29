@@ -1,4 +1,4 @@
-# holiday-cn-java
+# workday-cn-java
 
 A Java library for fetching and caching Chinese holiday data. Pulls holiday configurations from remote sources with local caching, strategy-based calculation, and working-day arithmetic.
 
@@ -45,7 +45,7 @@ Compatible with [holiday-cn](https://github.com/NateScarlet/holiday-cn) JSON for
 ```xml
 <dependency>
     <groupId>com.github.d2yh</groupId>
-    <artifactId>holiday-cn-java</artifactId>
+    <artifactId>workday-cn-java</artifactId>
     <version>1.0.0</version>
 </dependency>
 ```
@@ -53,8 +53,8 @@ Compatible with [holiday-cn](https://github.com/NateScarlet/holiday-cn) JSON for
 ## Quick Start
 
 ```java
-import com.github.d2yh.holiday.HolidayFetcher;
-import com.github.d2yh.holiday.model.HolidayInfo;
+import com.github.d2yh.workday.HolidayFetcher;
+import com.github.d2yh.workday.model.HolidayInfo;
 import java.time.LocalDate;
 
 // Initialize with default configuration

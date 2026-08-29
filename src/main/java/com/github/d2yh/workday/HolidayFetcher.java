@@ -1,12 +1,12 @@
-package com.github.d2yh.holiday;
+package com.github.d2yh.workday;
 
-import com.github.d2yh.holiday.config.HolidayConfig;
-import com.github.d2yh.holiday.exception.HolidayFetchException;
-import com.github.d2yh.holiday.exception.HolidayParseException;
-import com.github.d2yh.holiday.model.HolidayInfo;
-import com.github.d2yh.holiday.strategy.FestivalStrategy;
-import com.github.d2yh.holiday.strategy.OffDayStrategy;
-import com.github.d2yh.holiday.strategy.WeekendOnlyStrategy;
+import com.github.d2yh.workday.config.HolidayConfig;
+import com.github.d2yh.workday.exception.HolidayFetchException;
+import com.github.d2yh.workday.exception.HolidayParseException;
+import com.github.d2yh.workday.model.HolidayInfo;
+import com.github.d2yh.workday.strategy.FestivalStrategy;
+import com.github.d2yh.workday.strategy.OffDayStrategy;
+import com.github.d2yh.workday.strategy.WeekendOnlyStrategy;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.cronutils.model.Cron;
@@ -14,9 +14,11 @@ import com.cronutils.model.definition.CronDefinitionBuilder;
 import com.cronutils.model.time.ExecutionTime;
 import com.cronutils.parser.CronParser;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -385,6 +387,10 @@ public class HolidayFetcher {
     String fetchFromUrl(String url) {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             HttpGet request = new HttpGet(url);
+            request.setConfig(RequestConfig.custom()
+                    .setConnectionRequestTimeout(Timeout.ofSeconds(10))
+                    .setResponseTimeout(Timeout.ofSeconds(30))
+                    .build());
             return httpClient.execute(request, response -> {
                 int status = response.getCode();
                 if (status < 200 || status >= 300) {
@@ -545,7 +551,7 @@ public class HolidayFetcher {
         ExecutionTime executionTime = ExecutionTime.forCron(cron);
 
         scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread t = new Thread(r, "holiday-cn-java-updater");
+            Thread t = new Thread(r, "workday-cn-java-updater");
             t.setDaemon(true);
             return t;
         });

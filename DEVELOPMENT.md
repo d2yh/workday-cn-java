@@ -1,6 +1,6 @@
 # Development Guide
 
-Development and configuration reference for `holiday-cn-java`.
+Development and configuration reference for `workday-cn-java`.
 
 ---
 
@@ -13,7 +13,7 @@ Maven:
 ```xml
 <dependency>
     <groupId>com.github.d2yh</groupId>
-    <artifactId>holiday-cn-java</artifactId>
+    <artifactId>workday-cn-java</artifactId>
     <version>1.0.0</version>
 </dependency>
 ```
@@ -55,8 +55,8 @@ LocalDate deadline = fetcher.addWorkDays(LocalDate.of(2025, 10, 15), 10);
 Use the static utility class `WorkdayUtils` when no HolidayFetcher instance is needed:
 
 ```java
-import com.github.d2yh.holiday.util.WorkdayUtils;
-import com.github.d2yh.holiday.strategy.WeekendOnlyStrategy;
+import com.github.d2yh.workday.util.WorkdayUtils;
+import com.github.d2yh.workday.strategy.WeekendOnlyStrategy;
 
 // Simple weekend / weekday check
 boolean weekend = WorkdayUtils.isWeekend(LocalDate.of(2025, 10, 4)); // true
@@ -240,7 +240,7 @@ private static final HolidayFetcher fetcher = new HolidayFetcher();
 | When | Thread | Description |
 |------|--------|-------------|
 | Constructing HolidayFetcher | No background thread | Constructor synchronously loads disk data into memory on the calling thread |
-| Calling `startPeriodicUpdate()` | `holiday-cn-java-updater` | Single-threaded `ScheduledExecutorService`, daemon thread, calculates next execution via Quartz cron and schedules tasks |
+| Calling `startPeriodicUpdate()` | `workday-cn-java-updater` | Single-threaded `ScheduledExecutorService`, daemon thread, calculates next execution via Quartz cron and schedules tasks |
 | Calling `stopPeriodicUpdate()` | — | Cancels the scheduled task and shuts down the thread pool |
 
 The scheduler thread is a **daemon thread** and will not prevent JVM shutdown.

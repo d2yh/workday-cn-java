@@ -6,17 +6,17 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.github.d2yh</groupId>
-    <artifactId>holiday-cn-java</artifactId>
+    <artifactId>workday-cn-java</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
-    <name>holiday-cn-java</name>
-    <description>Java library for fetching and caching Chinese holiday data, inspired by holiday-cn</description>
-    <url>https://github.com/d2yh/holiday-cn-java</url>
+    <name>workday-cn-java</name>
+    <description>Java library for Chinese workday calculation: holiday-aware workday checks and working-day arithmetic, with holiday data fetching and caching compatible with the holiday-cn format</description>
+    <url>https://github.com/d2yh/workday-cn-java</url>
 
     <scm>
-        <url>https://github.com/d2yh/holiday-cn-java</url>
-        <connection>scm:git:https://github.com/d2yh/holiday-cn-java.git</connection>
+        <url>https://github.com/d2yh/workday-cn-java</url>
+        <connection>scm:git:https://github.com/d2yh/workday-cn-java.git</connection>
     </scm>
 
     <licenses>
@@ -65,6 +65,7 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>1.4.8</version>
+            <scope>test</scope>
         </dependency>
 
         <!-- Cron expression parsing -->

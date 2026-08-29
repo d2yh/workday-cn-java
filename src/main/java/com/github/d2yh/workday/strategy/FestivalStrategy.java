@@ -1,11 +1,12 @@
-package com.github.d2yh.holiday.strategy;
+package com.github.d2yh.workday.strategy;
 
-import com.github.d2yh.holiday.model.HolidayInfo;
-import com.github.d2yh.holiday.util.LunarCalendar;
+import com.github.d2yh.workday.model.HolidayInfo;
+import com.github.d2yh.workday.util.LunarCalendar;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 策略B：周末 + 春节（初一~初三） + 国庆（10.1~10.3），遇周末顺延。
@@ -21,7 +22,7 @@ import java.util.*;
 public class FestivalStrategy implements OffDayStrategy {
 
     /** 缓存：年份 → 该年所有休息日的日期集合 */
-    private final Map<Integer, Set<String>> offDayCache = new HashMap<>();
+    private final Map<Integer, Set<String>> offDayCache = new ConcurrentHashMap<>();
 
     @Override
     public boolean isOffDay(LocalDate date) {
