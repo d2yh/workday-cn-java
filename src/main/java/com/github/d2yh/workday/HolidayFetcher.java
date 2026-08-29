@@ -3,11 +3,11 @@ package com.github.d2yh.workday;
 import com.github.d2yh.workday.config.HolidayConfig;
 import com.github.d2yh.workday.exception.HolidayFetchException;
 import com.github.d2yh.workday.exception.HolidayParseException;
+import com.github.d2yh.workday.model.HolidayDataFile;
 import com.github.d2yh.workday.model.HolidayInfo;
 import com.github.d2yh.workday.strategy.FestivalStrategy;
 import com.github.d2yh.workday.strategy.OffDayStrategy;
 import com.github.d2yh.workday.strategy.WeekendOnlyStrategy;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.cronutils.model.Cron;
 import com.cronutils.model.definition.CronDefinitionBuilder;
@@ -258,10 +258,8 @@ public class HolidayFetcher {
      */
     private List<HolidayInfo> loadJsonFile(File file) {
         try {
-            Map<String, List<HolidayInfo>> wrapper = objectMapper.readValue(
-                    file, new TypeReference<Map<String, List<HolidayInfo>>>() {}
-            );
-            List<HolidayInfo> days = wrapper.get("days");
+            HolidayDataFile data = objectMapper.readValue(file, HolidayDataFile.class);
+            List<HolidayInfo> days = data.getDays();
             return (days != null) ? days : Collections.emptyList();
         } catch (IOException e) {
             logger.warn("Failed to load data file {}: {}", file.getName(), e.getMessage());
@@ -364,10 +362,8 @@ public class HolidayFetcher {
                 logger.debug("Classpath resource not found: {}", resourcePath);
                 return Collections.emptyList();
             }
-            Map<String, List<HolidayInfo>> wrapper = objectMapper.readValue(
-                    is, new TypeReference<Map<String, List<HolidayInfo>>>() {}
-            );
-            List<HolidayInfo> days = wrapper.get("days");
+            HolidayDataFile data = objectMapper.readValue(is, HolidayDataFile.class);
+            List<HolidayInfo> days = data.getDays();
             if (days == null || days.isEmpty()) {
                 logger.debug("Classpath resource {} has no data", resourcePath);
                 return Collections.emptyList();
@@ -388,6 +384,7 @@ public class HolidayFetcher {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             HttpGet request = new HttpGet(url);
             request.setConfig(RequestConfig.custom()
+                    .setConnectTimeout(Timeout.ofSeconds(10))
                     .setConnectionRequestTimeout(Timeout.ofSeconds(10))
                     .setResponseTimeout(Timeout.ofSeconds(30))
                     .build());
@@ -410,10 +407,8 @@ public class HolidayFetcher {
 
     private List<HolidayInfo> parseHolidayData(String json) {
         try {
-            Map<String, List<HolidayInfo>> wrapper = objectMapper.readValue(
-                    json, new TypeReference<Map<String, List<HolidayInfo>>>() {}
-            );
-            List<HolidayInfo> days = wrapper.get("days");
+            HolidayDataFile data = objectMapper.readValue(json, HolidayDataFile.class);
+            List<HolidayInfo> days = data.getDays();
             if (days == null) {
                 throw new HolidayParseException(
                         "JSON does not contain expected 'days' field");
@@ -438,14 +433,8 @@ public class HolidayFetcher {
         if (cached != null) {
             return cached;
         }
-        // 无数据 → 策略计算
-        if (strategy.isOffDay(date)) {
-            return new HolidayInfo(
-                    date.toString(), "策略计算", true,
-                    HolidayInfo.isWeekendDay(date), 1
-            );
-        }
-        return null;
+        // 无数据 → 策略计算（返回策略的详细条目）
+        return strategy.getOffDayInfo(date);
     }
 
     /**

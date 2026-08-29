@@ -21,6 +21,14 @@ public class WeekendOnlyStrategy implements OffDayStrategy {
     }
 
     @Override
+    public HolidayInfo getOffDayInfo(LocalDate date) {
+        if (!isOffDay(date)) {
+            return null;
+        }
+        return new HolidayInfo(date.toString(), "周末", true, true, 1);
+    }
+
+    @Override
     public List<HolidayInfo> generateOffDays(int year) {
         List<HolidayInfo> result = new ArrayList<>();
         LocalDate date = LocalDate.of(year, 1, 1);

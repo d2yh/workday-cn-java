@@ -846,4 +846,58 @@ public class HolidayFetcherTest {
         fetcher.stopPeriodicUpdate();  // harmless
         assertFalse(fetcher.isRefreshEnabled());
     }
+
+    // ──────────────── Real Data Format Tests ────────────────
+
+    @Test
+    public void testGetHolidayFestivalFallbackDetails() {
+        // FESTIVAL 策略：无数据年份应返回节日详情而非通用包装
+        HolidayConfig config = createTestConfig();
+        config.setStrategy("FESTIVAL");
+        HolidayFetcher fetcher = new HolidayFetcher(config);
+        HolidayInfo info = fetcher.getHoliday(LocalDate.of(2031, 1, 23)); // 2031 春节初一（周四）
+        assertNotNull(info);
+        assertEquals("春节", info.getName());
+        assertEquals(3, info.getWage());
+    }
+
+    @Test
+    public void testGetHolidayWeekendFallbackDetails() {
+        HolidayFetcher fetcher = new HolidayFetcher(createTestConfig()); // WEEKEND_ONLY
+        HolidayInfo saturday = fetcher.getHoliday(LocalDate.of(2031, 1, 25)); // 周六
+        assertNotNull(saturday);
+        assertEquals("周末", saturday.getName());
+        assertNull(fetcher.getHoliday(LocalDate.of(2031, 1, 23))); // 周四 → 工作日
+    }
+
+    @Test
+    public void testParseRealHolidayCnFormat() {
+        // 真实 holiday-cn 文件顶层含 $schema/$id/year/papers 等额外字段
+        String realFormat = "{"
+                + "\"$schema\": \"https://example.com/schema.json\","
+                + "\"$id\": \"https://example.com/2025.json\","
+                + "\"year\": 2025,"
+                + "\"papers\": [\"https://example.com/paper.htm\"],"
+                + "\"days\": ["
+                + "  {\"date\": \"2025-10-01\", \"name\": \"国庆节\", \"isOffDay\": true, \"isWeekend\": false, \"wage\": 3}"
+                + "]"
+                + "}";
+        HolidayFetcher fetcher = createMockFetcher(realFormat);
+        fetcher.refresh();
+        HolidayInfo info = fetcher.getHoliday(LocalDate.of(2025, 10, 1));
+        assertNotNull("真实格式的额外顶层字段不应导致解析失败", info);
+        assertEquals("国庆节", info.getName());
+        assertEquals(3, info.getWage());
+    }
+
+    @Test
+    public void testLoadBundledDataFromClasspath() {
+        // 库内置的 classpath 数据文件即真实 holiday-cn 格式
+        HolidayConfig config = HolidayConfig.loadDefaults();
+        config.setDataDir(dataDir);
+        config.setSourceUrls(Collections.<String>emptyList());
+        HolidayFetcher fetcher = new HolidayFetcher(config);
+        List<HolidayInfo> days = fetcher.loadFromClasspath(2025);
+        assertFalse("内置 2025 数据应能正常解析", days.isEmpty());
+    }
 }

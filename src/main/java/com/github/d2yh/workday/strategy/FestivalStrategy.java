@@ -24,6 +24,9 @@ public class FestivalStrategy implements OffDayStrategy {
     /** 缓存：年份 → 该年所有休息日的日期集合 */
     private final Map<Integer, Set<String>> offDayCache = new ConcurrentHashMap<>();
 
+    /** 缓存：年份 → 该年休息日详情（日期 → 条目） */
+    private final Map<Integer, Map<String, HolidayInfo>> offDayInfoCache = new ConcurrentHashMap<>();
+
     @Override
     public boolean isOffDay(LocalDate date) {
         int year = date.getYear();
@@ -33,6 +36,17 @@ public class FestivalStrategy implements OffDayStrategy {
             offDayCache.put(year, offDays);
         }
         return offDays.contains(date.toString());
+    }
+
+    @Override
+    public HolidayInfo getOffDayInfo(LocalDate date) {
+        int year = date.getYear();
+        Map<String, HolidayInfo> infoMap = offDayInfoCache.get(year);
+        if (infoMap == null) {
+            generateOffDays(year);
+            infoMap = offDayInfoCache.get(year);
+        }
+        return infoMap.get(date.toString());
     }
 
     @Override
@@ -59,6 +73,7 @@ public class FestivalStrategy implements OffDayStrategy {
             dateSet.add(info.getDate());
         }
         offDayCache.put(year, dateSet);
+        offDayInfoCache.put(year, infoMap);
 
         return result;
     }
