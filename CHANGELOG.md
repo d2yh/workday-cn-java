@@ -7,8 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-> 首次发布将标记为 **0.1.0**。项目尚未公开发布且 API 仍可能调整，
-> 版本号由 `1.0.0` 重置为 `0.1.0` 以符合语义化版本的预发布约定。
+> 项目尚未公开发布，版本号处于 0.x 预发布迭代阶段（当前开发版本 **0.2.0**）。
+> 版本曾由 `1.0.0` 重置为 `0.1.0` 以符合语义化版本的预发布约定。
 
 ### Added
 - `HolidayConfig` — `.properties` configuration system with defaults and user override
@@ -23,9 +23,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Multi-level data loading: data directory → classpath → remote URL
 - Per-year JSON files in data directory with `holiday-meta.json` metadata
 - Full English and Chinese README documentation
-- 112 unit tests covering all features
-- `samples/` — four runnable sample projects demonstrating configuration patterns:
-  zero-config, classpath override, external config file, programmatic config with `{year}-ext.json` patch overlay
+- 129 unit tests covering all features
+- `WorkdayUtils` month-based methods: `workDaysInMonth`, `firstWorkDayOfMonth`,
+  `lastWorkDayOfMonth`, `nthWorkDayOfMonth`, `getWorkDays` (work-day enumeration in a range)
+- `samples/` — five runnable sample projects: `00-default` (WorkdayUtils API showcase)
+  plus four configuration patterns (zero-config, classpath override, external config file,
+  programmatic config with `{year}-ext.json` patch overlay)
 - `HolidayDataFile` — data-file wrapper tolerating extra top-level fields
   (`$schema`, `$id`, `year`, `papers`) in real holiday-cn files
 - `OffDayStrategy.getOffDayInfo(LocalDate)` — strategies now return detailed off-day
@@ -35,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Project renamed `holiday-cn-java` → `workday-cn-java`; package migrated
   `com.github.d2yh.holiday` → `com.github.d2yh.workday`
 - Version reset `1.0.0` → `0.1.0` (pre-release, nothing was ever published)
+- Version bumped `0.1.0` → `0.2.0` for the WorkdayUtils month-based method additions
 - `HolidayFetcher` refactored to use `HolidayConfig` for all settings
 - Periodic refresh is cron-based (Quartz expression; default: 1st, 11th, 21st of Nov/Dec at 02:00), replacing the earlier fixed-interval design
 - `getHoliday()` and `getHolidaysByYear()` now fall back to strategy when no data exists

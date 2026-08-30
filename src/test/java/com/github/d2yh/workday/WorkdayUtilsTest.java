@@ -8,7 +8,9 @@ import org.junit.Test;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.*;
@@ -266,6 +268,125 @@ public class WorkdayUtilsTest {
         // Should have more off days than WEEKEND_ONLY
         Set<String> weekendOnly = WorkdayUtils.getOffDaySet(2025);
         assertTrue(offDays.size() > weekendOnly.size());
+    }
+
+    // ──────────────── Month-based Calculation ────────────────
+
+    @Test
+    public void testWorkDaysInMonthDefault() {
+        // 2025-10: 31 days, 8 weekend days → 23 work days
+        assertEquals(23, WorkdayUtils.workDaysInMonth(2025, 10));
+    }
+
+    @Test
+    public void testWorkDaysInMonthFestival() {
+        // 2026-02: 28 days, 8 weekend days, Spring Festival 17th-19th (Tue-Thu) → 17 work days
+        assertEquals(17, WorkdayUtils.workDaysInMonth(2026, 2, new FestivalStrategy()));
+    }
+
+    @Test
+    public void testFirstWorkDayOfMonth() {
+        assertEquals(LocalDate.of(2025, 10, 1), WorkdayUtils.firstWorkDayOfMonth(2025, 10)); // Wednesday
+    }
+
+    @Test
+    public void testFirstWorkDayOfMonthSkipsWeekend() {
+        // 2025-11-01 is Saturday → first work day is Monday 11-03
+        assertEquals(LocalDate.of(2025, 11, 3), WorkdayUtils.firstWorkDayOfMonth(2025, 11));
+    }
+
+    @Test
+    public void testLastWorkDayOfMonth() {
+        assertEquals(LocalDate.of(2025, 10, 31), WorkdayUtils.lastWorkDayOfMonth(2025, 10)); // Friday
+    }
+
+    @Test
+    public void testLastWorkDayOfMonthSkipsWeekend() {
+        // 2025-11-30 is Sunday → last work day is Friday 11-28
+        assertEquals(LocalDate.of(2025, 11, 28), WorkdayUtils.lastWorkDayOfMonth(2025, 11));
+    }
+
+    @Test
+    public void testLastWorkDayOfMonthFestival() {
+        // 2026-02-28 is Saturday → last work day is Friday 02-27
+        assertEquals(LocalDate.of(2026, 2, 27),
+                WorkdayUtils.lastWorkDayOfMonth(2026, 2, new FestivalStrategy()));
+    }
+
+    @Test
+    public void testNthWorkDayOfMonth() {
+        assertEquals(LocalDate.of(2025, 10, 1), WorkdayUtils.nthWorkDayOfMonth(2025, 10, 1));  // Wednesday
+        assertEquals(LocalDate.of(2025, 10, 2), WorkdayUtils.nthWorkDayOfMonth(2025, 10, 2));  // Thursday
+        assertEquals(LocalDate.of(2025, 10, 6), WorkdayUtils.nthWorkDayOfMonth(2025, 10, 4));  // skips weekend
+        assertEquals(LocalDate.of(2025, 10, 31), WorkdayUtils.nthWorkDayOfMonth(2025, 10, 23)); // last one
+    }
+
+    @Test
+    public void testNthWorkDayOfMonthFestival() {
+        // 2026-02 work days: 2-6, 9-13, 16, 20, 23-27; the 12th skips Spring Festival 17-19
+        assertEquals(LocalDate.of(2026, 2, 20),
+                WorkdayUtils.nthWorkDayOfMonth(2026, 2, 12, new FestivalStrategy()));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testNthWorkDayOfMonthOutOfRange() {
+        WorkdayUtils.nthWorkDayOfMonth(2025, 10, 24); // only 23 work days
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testNthWorkDayOfMonthInvalidN() {
+        WorkdayUtils.nthWorkDayOfMonth(2025, 10, 0);
+    }
+
+    @Test
+    public void testGetWorkDays() {
+        // Fri 10-17 → Tue 10-21: [17, 20, 21]
+        List<LocalDate> days = WorkdayUtils.getWorkDays(
+                LocalDate.of(2025, 10, 17), LocalDate.of(2025, 10, 21));
+        assertEquals(Arrays.asList(
+                LocalDate.of(2025, 10, 17),
+                LocalDate.of(2025, 10, 20),
+                LocalDate.of(2025, 10, 21)), days);
+    }
+
+    @Test
+    public void testGetWorkDaysFestivalSpansSpringFestival() {
+        // 2026-02-16 → 02-20: 17/18/19 Spring Festival off → [16, 20]
+        List<LocalDate> days = WorkdayUtils.getWorkDays(
+                LocalDate.of(2026, 2, 16), LocalDate.of(2026, 2, 20), new FestivalStrategy());
+        assertEquals(Arrays.asList(
+                LocalDate.of(2026, 2, 16),
+                LocalDate.of(2026, 2, 20)), days);
+    }
+
+    @Test
+    public void testGetWorkDaysSingleDay() {
+        List<LocalDate> workday = WorkdayUtils.getWorkDays(
+                LocalDate.of(2025, 10, 15), LocalDate.of(2025, 10, 15)); // Wednesday
+        assertEquals(1, workday.size());
+        List<LocalDate> weekend = WorkdayUtils.getWorkDays(
+                LocalDate.of(2025, 10, 18), LocalDate.of(2025, 10, 19)); // Sat-Sun
+        assertTrue(weekend.isEmpty());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testGetWorkDaysReversedRange() {
+        WorkdayUtils.getWorkDays(LocalDate.of(2025, 10, 21), LocalDate.of(2025, 10, 17));
+    }
+
+    @Test
+    public void testGetWorkDaysMatchesWorkDaysBetween() {
+        LocalDate from = LocalDate.of(2025, 10, 1);
+        LocalDate to = LocalDate.of(2025, 10, 31);
+        assertEquals(WorkdayUtils.workDaysBetween(from, to),
+                WorkdayUtils.getWorkDays(from, to).size());
+    }
+
+    @Test
+    public void testWorkDaysInMonthMatchesGetWorkDays() {
+        assertEquals(WorkdayUtils.workDaysInMonth(2025, 10),
+                WorkdayUtils.getWorkDays(
+                        LocalDate.of(2025, 10, 1), LocalDate.of(2025, 10, 31)).size());
     }
 
     // ──────────────── Consistency Tests ────────────────

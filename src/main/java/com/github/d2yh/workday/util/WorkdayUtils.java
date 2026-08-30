@@ -6,8 +6,11 @@ import com.github.d2yh.workday.strategy.WeekendOnlyStrategy;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -258,6 +261,186 @@ public final class WorkdayUtils {
         return strategy.generateOffDays(year).stream()
                 .map(HolidayInfo::getDate)
                 .collect(Collectors.toSet());
+    }
+
+    // ──────────────── Month-based Calculation ────────────────
+
+    /**
+     * 计算指定月份的工作日总数（默认策略）。
+     *
+     * @param year  年份
+     * @param month 月份（1-12）
+     * @return 该月工作日总数
+     */
+    public static int workDaysInMonth(int year, int month) {
+        return workDaysInMonth(year, month, DEFAULT_STRATEGY);
+    }
+
+    /**
+     * 计算指定月份的工作日总数。
+     *
+     * @param year     年份
+     * @param month    月份（1-12）
+     * @param strategy 休息日策略
+     * @return 该月工作日总数
+     */
+    public static int workDaysInMonth(int year, int month, OffDayStrategy strategy) {
+        YearMonth ym = YearMonth.of(year, month);
+        int count = 0;
+        LocalDate date = ym.atDay(1);
+        LocalDate end = ym.atEndOfMonth();
+        while (!date.isAfter(end)) {
+            if (!strategy.isOffDay(date)) {
+                count++;
+            }
+            date = date.plusDays(1);
+        }
+        return count;
+    }
+
+    /**
+     * 获取指定月份的第一个工作日（默认策略）。
+     *
+     * @param year  年份
+     * @param month 月份（1-12）
+     * @return 该月第一个工作日
+     */
+    public static LocalDate firstWorkDayOfMonth(int year, int month) {
+        return firstWorkDayOfMonth(year, month, DEFAULT_STRATEGY);
+    }
+
+    /**
+     * 获取指定月份的第一个工作日。
+     *
+     * @param year     年份
+     * @param month    月份（1-12）
+     * @param strategy 休息日策略
+     * @return 该月第一个工作日
+     */
+    public static LocalDate firstWorkDayOfMonth(int year, int month, OffDayStrategy strategy) {
+        YearMonth ym = YearMonth.of(year, month);
+        LocalDate date = ym.atDay(1);
+        LocalDate end = ym.atEndOfMonth();
+        while (!date.isAfter(end)) {
+            if (!strategy.isOffDay(date)) {
+                return date;
+            }
+            date = date.plusDays(1);
+        }
+        // 理论上不可达：任何月份至少有一个非周末日（连续 31 天必含工作日）
+        throw new IllegalStateException("No work day found in " + year + "-" + month);
+    }
+
+    /**
+     * 获取指定月份的最后一个工作日（默认策略）。
+     *
+     * @param year  年份
+     * @param month 月份（1-12）
+     * @return 该月最后一个工作日
+     */
+    public static LocalDate lastWorkDayOfMonth(int year, int month) {
+        return lastWorkDayOfMonth(year, month, DEFAULT_STRATEGY);
+    }
+
+    /**
+     * 获取指定月份的最后一个工作日。
+     *
+     * @param year     年份
+     * @param month    月份（1-12）
+     * @param strategy 休息日策略
+     * @return 该月最后一个工作日
+     */
+    public static LocalDate lastWorkDayOfMonth(int year, int month, OffDayStrategy strategy) {
+        YearMonth ym = YearMonth.of(year, month);
+        LocalDate date = ym.atEndOfMonth();
+        LocalDate start = ym.atDay(1);
+        while (!date.isBefore(start)) {
+            if (!strategy.isOffDay(date)) {
+                return date;
+            }
+            date = date.minusDays(1);
+        }
+        throw new IllegalStateException("No work day found in " + year + "-" + month);
+    }
+
+    /**
+     * 获取指定月份的第 n 个工作日（默认策略），常用于"每月第 n 个工作日"类结算日。
+     *
+     * @param year  年份
+     * @param month 月份（1-12）
+     * @param n     第 n 个工作日（从 1 开始）
+     * @return 该月第 n 个工作日
+     * @throws IllegalArgumentException 若 n 小于 1 或超过该月工作日总数
+     */
+    public static LocalDate nthWorkDayOfMonth(int year, int month, int n) {
+        return nthWorkDayOfMonth(year, month, n, DEFAULT_STRATEGY);
+    }
+
+    /**
+     * 获取指定月份的第 n 个工作日，常用于"每月第 n 个工作日"类结算日。
+     *
+     * @param year     年份
+     * @param month    月份（1-12）
+     * @param n        第 n 个工作日（从 1 开始）
+     * @param strategy 休息日策略
+     * @return 该月第 n 个工作日
+     * @throws IllegalArgumentException 若 n 小于 1 或超过该月工作日总数
+     */
+    public static LocalDate nthWorkDayOfMonth(int year, int month, int n, OffDayStrategy strategy) {
+        if (n < 1) {
+            throw new IllegalArgumentException("n must be >= 1, got: " + n);
+        }
+        YearMonth ym = YearMonth.of(year, month);
+        int count = 0;
+        LocalDate date = ym.atDay(1);
+        LocalDate end = ym.atEndOfMonth();
+        while (!date.isAfter(end)) {
+            if (!strategy.isOffDay(date)) {
+                count++;
+                if (count == n) {
+                    return date;
+                }
+            }
+            date = date.plusDays(1);
+        }
+        throw new IllegalArgumentException(
+                year + "-" + month + " has only " + count + " work days, requested n=" + n);
+    }
+
+    /**
+     * 枚举两个日期之间（含两端）的所有工作日（默认策略）。
+     *
+     * @param from 起始日期
+     * @param to   结束日期
+     * @return 按日期升序的工作日列表
+     * @throws IllegalArgumentException 若 from 在 to 之后
+     */
+    public static List<LocalDate> getWorkDays(LocalDate from, LocalDate to) {
+        return getWorkDays(from, to, DEFAULT_STRATEGY);
+    }
+
+    /**
+     * 枚举两个日期之间（含两端）的所有工作日。
+     *
+     * @param from     起始日期
+     * @param to       结束日期
+     * @param strategy 休息日策略
+     * @return 按日期升序的工作日列表
+     * @throws IllegalArgumentException 若 from 在 to 之后
+     */
+    public static List<LocalDate> getWorkDays(LocalDate from, LocalDate to, OffDayStrategy strategy) {
+        if (from.isAfter(to)) {
+            throw new IllegalArgumentException("from must not be after to: " + from + " > " + to);
+        }
+        List<LocalDate> result = new ArrayList<>();
+        LocalDate current = from;
+        while (!current.isAfter(to)) {
+            if (!strategy.isOffDay(current)) {
+                result.add(current);
+            }
+            current = current.plusDays(1);
+        }
+        return result;
     }
 
     // ──────────────── Date ↔ LocalDate Conversion ────────────────

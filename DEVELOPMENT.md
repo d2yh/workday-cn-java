@@ -14,7 +14,7 @@ Maven:
 <dependency>
     <groupId>com.github.d2yh</groupId>
     <artifactId>workday-cn-java</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
 </dependency>
 ```
 
