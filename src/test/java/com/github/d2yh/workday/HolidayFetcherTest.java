@@ -7,6 +7,11 @@ import com.github.d2yh.workday.strategy.FestivalStrategy;
 import com.github.d2yh.workday.strategy.OffDayStrategy;
 import com.github.d2yh.workday.strategy.WeekendOnlyStrategy;
 import com.github.d2yh.workday.util.LunarCalendar;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
+import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.io.CloseMode;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -14,6 +19,8 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.nio.file.Files;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
@@ -44,6 +51,9 @@ public class HolidayFetcherTest {
             + "  {\"date\": \"2026-02-17\", \"name\": \"春节\", \"isOffDay\": true, \"isWeekend\": false, \"wage\": 3}"
             + "]"
             + "}";
+
+    private static final List<String> EMPTY_DATA_RESPONSES = Arrays.asList(
+            "", " \t\r\n", "{\"days\": []}", "{}", "{\"days\": null}", "null", null);
 
     private String dataDir;
     private String effectiveDataDir;
@@ -226,6 +236,71 @@ public class HolidayFetcherTest {
         assertTrue(fetcher.getCacheSize() > 0);
     }
 
+    @Test
+    public void testEmptyRemoteDataFallsBackToNextSource() throws IOException {
+        for (String emptyJson : EMPTY_DATA_RESPONSES) {
+            HolidayConfig config = createTestConfig();
+            config.setDataDir(tempFolder.newFolder().getAbsolutePath());
+            config.setSourceUrls(Arrays.asList(
+                    "http://mock.test/empty/${yyyy}.json",
+                    "http://mock.test/ok/${yyyy}.json"));
+            HolidayFetcher fetcher = new HolidayFetcher(config) {
+                @Override
+                String fetchFromUrl(String url) {
+                    return url.contains("/empty/") ? emptyJson : SAMPLE_JSON;
+                }
+            };
+
+            fetcher.refresh();
+
+            assertEquals("空数据应继续尝试备用源：" + emptyJson, 4, fetcher.getCacheSize());
+            assertTrue(new File(config.getEffectiveDataDir(), "2025.json").exists());
+        }
+    }
+
+    @Test
+    public void testEmptyHttp200ResponseFallsBackToNextSource() throws IOException {
+        assertEmptyHttpResponseFallsBack(200);
+    }
+
+    @Test
+    public void testHttp204ResponseFallsBackToNextSource() throws IOException {
+        assertEmptyHttpResponseFallsBack(204);
+    }
+
+    private void assertEmptyHttpResponseFallsBack(int status) throws IOException {
+        HttpServer server = ServerBootstrap.bootstrap()
+                .setLocalAddress(InetAddress.getByName("127.0.0.1"))
+                .setListenerPort(0)
+                .register("/empty/*", (request, response, context) -> response.setCode(status))
+                .register("/ok/*", (request, response, context) -> {
+                    response.setCode(200);
+                    response.setEntity(new StringEntity(SAMPLE_JSON, ContentType.APPLICATION_JSON));
+                })
+                .create();
+        try {
+            server.start();
+            String baseUrl = "http://127.0.0.1:" + server.getLocalPort();
+            HolidayConfig config = createTestConfig();
+            config.setSourceUrls(Arrays.asList(
+                    baseUrl + "/empty/${yyyy}.json", baseUrl + "/ok/${yyyy}.json"));
+            HolidayFetcher fetcher = new HolidayFetcher(config) {
+                @Override
+                List<Integer> determineYearsToFetch() {
+                    return Collections.singletonList(2025);
+                }
+            };
+
+            fetcher.refresh();
+
+            assertEquals(4, fetcher.getCacheSize());
+            assertEquals("国庆节", fetcher.getHoliday(LocalDate.of(2025, 10, 1)).getName());
+            assertTrue(new File(effectiveDataDir, "2025.json").exists());
+        } finally {
+            server.close(CloseMode.IMMEDIATE);
+        }
+    }
+
     @Test(expected = HolidayFetchException.class)
     public void testAllUrlTemplatesFailThrows() {
         HolidayConfig config = createTestConfig();
@@ -367,6 +442,73 @@ public class HolidayFetcherTest {
         assertTrue(yearFile.exists());
         assertTrue(metaFile.exists());
         assertTrue(yearFile.length() > 0);
+    }
+
+    @Test
+    public void testEmptyRemoteDataDoesNotCreateFiles() {
+        for (String emptyJson : EMPTY_DATA_RESPONSES) {
+            HolidayFetcher fetcher = createMockFetcher(emptyJson);
+
+            assertThrows(HolidayFetchException.class, fetcher::refresh);
+
+            assertEquals(0, fetcher.getCacheSize());
+            assertFalse(fetcher.hasDataForYear(2025));
+            assertFalse("空数据不应创建缓存目录或元数据：" + emptyJson,
+                    new File(effectiveDataDir).exists());
+        }
+    }
+
+    @Test
+    public void testEmptyRemoteDataPreservesExistingCache() throws IOException {
+        createMockFetcher(SAMPLE_JSON).refresh();
+        File yearFile = new File(effectiveDataDir, "2025.json");
+        File metaFile = new File(effectiveDataDir, "holiday-meta.json");
+        long expiredTime = System.currentTimeMillis() - 25L * 3600 * 1000;
+        assertTrue(yearFile.setLastModified(expiredTime));
+        assertTrue(metaFile.setLastModified(expiredTime));
+        long yearModified = yearFile.lastModified();
+        long metaModified = metaFile.lastModified();
+        byte[] yearContent = Files.readAllBytes(yearFile.toPath());
+        byte[] metaContent = Files.readAllBytes(metaFile.toPath());
+
+        for (String emptyJson : EMPTY_DATA_RESPONSES) {
+            final int[] fetchCount = {0};
+            HolidayFetcher fetcher = new HolidayFetcher(createTestConfig()) {
+                @Override
+                String fetchFromUrl(String url) {
+                    fetchCount[0]++;
+                    return emptyJson;
+                }
+            };
+
+            fetcher.refresh();
+            fetcher.refresh();
+
+            assertEquals("空数据不应刷新缓存时间而阻止重试：" + emptyJson,
+                    2 * fetcher.determineYearsToFetch().size(), fetchCount[0]);
+            assertEquals(4, fetcher.getCacheSize());
+            assertTrue(fetcher.hasDataForYear(2025));
+            assertEquals("国庆节", fetcher.getHoliday(LocalDate.of(2025, 10, 1)).getName());
+            assertEquals("空数据不应重写年份文件：" + emptyJson, yearModified, yearFile.lastModified());
+            assertEquals("空数据不应更新元数据：" + emptyJson, metaModified, metaFile.lastModified());
+            assertArrayEquals(yearContent, Files.readAllBytes(yearFile.toPath()));
+            assertArrayEquals(metaContent, Files.readAllBytes(metaFile.toPath()));
+        }
+    }
+
+    @Test
+    public void testEmptyYearIsNotSavedAlongsideValidYear() {
+        HolidayFetcher fetcher = createMultiYearFetcher(
+                2025, Collections.singletonList("http://mock.test/${yyyy}.json"),
+                SAMPLE_JSON, "{\"days\": []}");
+
+        fetcher.refresh();
+
+        assertTrue(fetcher.hasDataForYear(2025));
+        assertFalse(fetcher.hasDataForYear(2026));
+        assertTrue(new File(effectiveDataDir, "2025.json").exists());
+        assertFalse("其他年份有数据也不应保存空年份", new File(effectiveDataDir, "2026.json").exists());
+        assertTrue(new File(effectiveDataDir, "holiday-meta.json").exists());
     }
 
     @Test
