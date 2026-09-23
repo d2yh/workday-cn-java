@@ -144,8 +144,12 @@ public class HolidayFetcher {
             }
         }
 
-        if (allHolidays.isEmpty() && holidayCache.isEmpty()) {
-            throw new HolidayFetchException("No holiday data could be fetched from any source");
+        if (allHolidays.isEmpty()) {
+            if (holidayCache.isEmpty()) {
+                throw new HolidayFetchException("No holiday data could be fetched from any source");
+            }
+            logger.info("No new holiday data fetched, keeping existing cache without saving");
+            return;
         }
 
         for (HolidayInfo info : allHolidays) {
@@ -394,6 +398,9 @@ public class HolidayFetcher {
                     throw new HolidayFetchException(
                             "HTTP request failed with status code: " + status);
                 }
+                if (response.getEntity() == null) {
+                    throw new HolidayFetchException("HTTP response contains no holiday data");
+                }
                 return EntityUtils.toString(response.getEntity());
             });
         } catch (HolidayFetchException e) {
@@ -406,12 +413,15 @@ public class HolidayFetcher {
     // ──────────────── JSON Parse ────────────────
 
     private List<HolidayInfo> parseHolidayData(String json) {
+        if (json == null || json.trim().isEmpty()) {
+            throw new HolidayParseException("Holiday JSON data is empty");
+        }
         try {
             HolidayDataFile data = objectMapper.readValue(json, HolidayDataFile.class);
-            List<HolidayInfo> days = data.getDays();
-            if (days == null) {
+            List<HolidayInfo> days = data == null ? null : data.getDays();
+            if (days == null || days.isEmpty()) {
                 throw new HolidayParseException(
-                        "JSON does not contain expected 'days' field");
+                        "JSON does not contain a non-empty 'days' field");
             }
             return days;
         } catch (IOException e) {
