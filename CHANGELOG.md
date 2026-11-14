@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-> 项目尚未公开发布，版本号处于 0.x 预发布迭代阶段（当前开发版本 **0.2.0**）。
+> 项目尚未公开发布，版本号处于 0.x 预发布迭代阶段（当前开发版本 **0.2.1**）。
 > 版本曾由 `1.0.0` 重置为 `0.1.0` 以符合语义化版本的预发布约定。
 
 ### Added
@@ -33,12 +33,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`$schema`, `$id`, `year`, `papers`) in real holiday-cn files
 - `OffDayStrategy.getOffDayInfo(LocalDate)` — strategies now return detailed off-day
   entries (festival name, wage multiplier) instead of a generic wrapper
+- Bundled holiday data for 2027 (`calendar-cn/2027.json`) — official State Council
+  2027 holiday schedule (34 entries), synced from holiday-cn
 
 ### Changed
 - Project renamed `holiday-cn-java` → `workday-cn-java`; package migrated
   `com.github.d2yh.holiday` → `com.github.d2yh.workday`
 - Version reset `1.0.0` → `0.1.0` (pre-release, nothing was ever published)
 - Version bumped `0.1.0` → `0.2.0` for the WorkdayUtils month-based method additions
+- Version bumped `0.2.0` → `0.2.1` for the bundled 2027 holiday data update
 - `HolidayFetcher` refactored to use `HolidayConfig` for all settings
 - Periodic refresh is cron-based (Quartz expression; default: 1st, 11th, 21st of Nov/Dec at 02:00), replacing the earlier fixed-interval design
 - `getHoliday()` and `getHolidaysByYear()` now fall back to strategy when no data exists
